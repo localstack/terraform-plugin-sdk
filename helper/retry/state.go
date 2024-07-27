@@ -55,6 +55,18 @@ type StateChangeConf struct {
 //
 // Cancellation from the passed in context will cancel the refresh loop
 func (conf *StateChangeConf) WaitForStateContext(ctx context.Context) (interface{}, error) {
+	// 
+	// Begining of patch
+	// 
+	// Remove the delay before first lookup.
+	conf.Delay = 0
+	// Remove the PollInterval and MinTimeout to always use terraform's default (exponential backoff retry).
+	conf.PollInterval = 0
+	conf.MinTimeout = 0
+	//
+	// End Of Patch
+	//
+
 	log.Printf("[DEBUG] Waiting for state to become: %s", conf.Target)
 
 	notfoundTick := 0
