@@ -45,7 +45,7 @@ website/local:
 website/build-local:
 	$(MAKE) -C website website/build-local
 
-patch-install:
+patch-install: venv
 	$(VENV_RUN); $(PIP_CMD) install --upgrade -r requirements.txt
 
 patch-create-tags:

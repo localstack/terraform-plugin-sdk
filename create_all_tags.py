@@ -66,22 +66,29 @@ REQUIRED_TAGS = [
     "v2.9.0",
 ]
 
-if __name__ == "__main__":
+
+def main():
     errors = []
+    created_tags = []
+
     for tag in REQUIRED_TAGS:
+        patched_tag = tag + "-001"
+
         try:
-            fetched = repo.git.fetch(
-                # adding --no-tags to prevent all tags from being added
-                f"origin --no-tags refs/tags/{tag}:refs/tags/{tag}".split()
-            )
-            print(f"Already exists at origin: {tag}")
+            repo.remote("origin").fetch(f"refs/tags/{patched_tag}")
+            print(f"Already exists at origin: {patched_tag}")
             continue
         except Exception:
             pass
-        repo.git.fetch(f"upstream --no-tags refs/tags/{tag}:refs/tags/{tag}".split())
+
+        try:
+            repo.delete_tag(repo.tag(tag))
+        except Exception:
+            pass
+
+        repo.remote("upstream").fetch(f"refs/tags/{tag}:refs/tags/{tag}")
         print(f"Fetched from upstream: {tag}")
-        # Delete local tag to allow for checkout
-        repo.git.tag(f"-d {tag}".split())
+
         repo.git.checkout(f"tags/{tag}")
 
         file_path = ""
@@ -122,8 +129,25 @@ if __name__ == "__main__":
             repo.git.checkout(f"tags/{tag} {file_path}".split())
             continue
 
-        repo.git.add(file_path)
-        repo.git.commit(f"-m 'creating tag for version {tag}'")
-        repo.git.tag(f"-d {tag}".split())
-        repo.git.tag(tag)
-        repo.git.push(f"origin tag {tag}".split())
+        repo.index.add(file_path)
+        repo.index.commit(f"creating tag for version {patched_tag}")
+        repo.create_tag(patched_tag, force=True)
+        created_tags.append(patched_tag)
+
+    pushed_tags = repo.remote("origin").push(created_tags)
+    print(f"Succesfully pushed tags: {[str(d.remote_ref) for d in pushed_tags]}")
+
+
+if __name__ == "__main__":
+    current_branch = repo.active_branch
+    try:
+        main()
+    finally:
+        diffs = repo.index.diff(None).iter_change_type("M")
+        to_revert = [diff.a_rawpath.decode() for diff in diffs]
+        if to_revert:
+            print(
+                f"\nReverting local changes to allow going back to original branch {to_revert=}"
+            )
+            repo.index.checkout([file for file in to_revert if file], force=True)
+        current_branch.checkout()
