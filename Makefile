@@ -45,10 +45,10 @@ website/local:
 website/build-local:
 	$(MAKE) -C website website/build-local
 
-localstack-install:
+patch-install:
 	$(VENV_RUN); $(PIP_CMD) install --upgrade -r requirements.txt
 
-localstack-create-tags:
+patch-create-tags:
 	$(VENV_RUN); python create_all_tags.py
 
 .PHONY: default fmt lint generate test website website/local website/build-local
