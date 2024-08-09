@@ -9,7 +9,7 @@ For new provider development it is recommended to investigate [`terraform-plugin
 Terraform itself is a tool for building, changing, and versioning infrastructure safely and efficiently. You can find more about Terraform on its [website](https://www.terraform.io) and [its GitHub repository](https://github.com/hashicorp/terraform).
 
 
-## Apply Patches to state.go
+## Apply LocalStack Patches to state.go
 
 On you local repo set upstream to `hashicorp/terraform-plugin-sdk`.
 This will allow the script to find the remote tags and apply patches to it.

@@ -72,11 +72,9 @@ def main():
     created_tags = []
 
     for tag in REQUIRED_TAGS:
-        patched_tag = tag + "-001"
-
         try:
-            repo.remote("origin").fetch(f"refs/tags/{patched_tag}")
-            print(f"Already exists at origin: {patched_tag}")
+            repo.remote("origin").fetch(f"refs/tags/{tag}")
+            print(f"Already exists at origin: {tag}")
             continue
         except Exception:
             pass
@@ -130,9 +128,9 @@ def main():
             continue
 
         repo.index.add(file_path)
-        repo.index.commit(f"creating tag for version {patched_tag}")
-        repo.create_tag(patched_tag, force=True)
-        created_tags.append(patched_tag)
+        repo.index.commit(f"creating tag for version {tag}")
+        repo.create_tag(tag, force=True)
+        created_tags.append(tag)
 
     pushed_tags = repo.remote("origin").push(created_tags)
     print(f"Succesfully pushed tags: {[str(d.remote_ref) for d in pushed_tags]}")
