@@ -8,6 +8,64 @@ For new provider development it is recommended to investigate [`terraform-plugin
 
 Terraform itself is a tool for building, changing, and versioning infrastructure safely and efficiently. You can find more about Terraform on its [website](https://www.terraform.io) and [its GitHub repository](https://github.com/hashicorp/terraform).
 
+
+## Apply LocalStack Patches to state.go
+
+On you local repo set upstream to `hashicorp/terraform-plugin-sdk`.
+This will allow the script to find the remote tags and apply patches to it.
+
+```shell
+git remote add upstream git@github.com:hashicorp/terraform-plugin-sdk.git
+```
+
+Create your python environment.
+
+```shell
+make patch-install
+```
+
+Create tags to origin
+
+```shell
+make patch-create-tags
+```
+
+The script will look for required version that are not yet patched.
+A diff will then show as such allowing to review the changes.
+```shell
+Fetched from upstream: v2.7.1
+found file at helper/resource/state.go
+diff --git a/helper/resource/state.go b/helper/resource/state.go
+index 6eda1993..3d8d1779 100644
+--- a/helper/resource/state.go
++++ b/helper/resource/state.go
+@@ -52,6 +52,17 @@ type StateChangeConf struct {
+ //
+ // Cancellation from the passed in context will cancel the refresh loop
+ func (conf *StateChangeConf) WaitForStateContext(ctx context.Context) (interface{}, error) {
++       //
++       // Begining of patch
++       // 
++       // Remove the delay before first lookup.
++       conf.Delay = 0
++       // Remove the PollInterval and MinTimeout to always use terraform's default (exponential backoff retry).
++       conf.PollInterval = 0
++       conf.MinTimeout = 0
++       //
++       // End Of Patch
++       //
+        log.Printf("[DEBUG] Waiting for state to become: %s", conf.Target)
+ 
+        notfoundTick := 0
+
+
+Modification to helper/resource/state.go
+If approved press <enter>. Any other value will cancel the operation.
+If <enter> is pressed the changes to this file will be commited and a tag will be created and pushed.
+```
+
+To add new tags to patch add to the `REQUIRED_TAGS` list in `create_all_tags.py`
+
 ## Terraform CLI Compatibility
 
 Terraform 0.12.0 or later is needed for version 2.0.0 and later of the Plugin SDK.
